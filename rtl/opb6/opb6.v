@@ -183,7 +183,7 @@ generate
     end
     if (scratch_pad_memory_size == 256) begin : large_spm
         opb6_sp_ram #(
-            .DP         (128),
+            .DP         (256),
             .DW         (8)
         ) spm (
             .clk        (clk),

@@ -152,9 +152,18 @@ assign arith_logical_sel[0] = (instruction[16:14] == 3'b100 || instruction[16:14
 assign arith_logical_sel[1] = (instruction[16:14] == 3'b001);
 assign arith_logical_sel[2] = instruction[16] & (instruction[15] | (~instruction[14]));
 
+`ifdef HAS_ASYNC_RST
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        alu_mux_sel <= 1'b0;
+    else
+        alu_mux_sel <= alu_mux_sel_value;
+end
+`else
 always @(posedge clk) begin
     alu_mux_sel <= alu_mux_sel_value;
 end
+`endif
 
 
 // Decoding for strobes and enables
@@ -235,14 +244,22 @@ assign carry_middle_zero = (~(|alu_result)) & (zero_flag | (~use_zero_flag));
 assign upper_zero_sel = instruction[16] | (~instruction[15]) | instruction[14];
 assign zero_flag_value = (upper_zero_sel) ? carry_middle_zero : shadow_zero_flag;
 
-always @(posedge clk) begin
-    arith_carry <= arith_carry_value;
-    shift_carry <= shift_carry_value;
-    use_zero_flag <= use_zero_flag_value;
-    shadow_zero_flag <= shadow_zero_value;
+`ifdef HAS_ASYNC_RST
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        arith_carry <= 1'b0;
+        shift_carry <= 1'b0;
+        use_zero_flag <= 1'b0;
+        shadow_zero_flag <= 1'b0;
+    end
+    else begin
+        arith_carry <= arith_carry_value;
+        shift_carry <= shift_carry_value;
+        use_zero_flag <= use_zero_flag_value;
+        shadow_zero_flag <= shadow_zero_value;
+    end
 end
 
-`ifdef HAS_ASYNC_RST
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         carry_flag <= 1'b0;
@@ -258,6 +275,13 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 `else
+always @(posedge clk) begin
+    arith_carry <= arith_carry_value;
+    shift_carry <= shift_carry_value;
+    use_zero_flag <= use_zero_flag_value;
+    shadow_zero_flag <= shadow_zero_value;
+end
+
 always @(posedge clk) begin
     if (internal_reset) begin
         carry_flag <= 1'b0;
@@ -295,6 +319,13 @@ always @(posedge clk or negedge rst_n) begin
     else
         bank <= bank_value;
 end
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n)
+        sx_addr4 <= 1'b0;
+    else
+        sx_addr4 <= sx_addr4_value;
+end
 `else
 always @(posedge clk) begin
     if (internal_reset)
@@ -302,11 +333,11 @@ always @(posedge clk) begin
     else
         bank <= bank_value;
 end
-`endif
 
 always @(posedge clk) begin
     sx_addr4 <= sx_addr4_value;
 end
+`endif
 
 assign gpr_we = register_enable;
 assign gpr_addrx = sx_addr;

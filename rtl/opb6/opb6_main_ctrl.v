@@ -65,7 +65,7 @@ assign active_interrupt_value = t_state[2] & interrupt_enable & sync_interrupt;
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         run <= 1'b0;
-        internal_reset <= 1'b1;
+        internal_reset <= 1'b0;
         sync_sleep <= 1'b0;
         t_state <= 2'b00;
         interrupt_enable <= 1'b0;
