@@ -10,8 +10,7 @@
 //==============================================================================
 
 
-module sim_ram #
-(
+module sim_ram #(
     parameter DP = 1024,            // RAM data depth
     parameter DW = 18,              // RAM data width
     parameter FORCE_X2ZERO = 0      // force output X to 0
