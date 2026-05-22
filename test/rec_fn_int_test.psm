@@ -1,0 +1,65 @@
+;===============================================================================
+; Recursive implementation of f(n) = f(n-1) + n, with f(0) = 0
+;===============================================================================
+
+
+;-------------------------------------------------------------------------------
+; Constants
+;-------------------------------------------------------------------------------
+CONSTANT ResultPort, 00         ; output port for result display
+CONSTANT StackTop, 3F           ; stack top initial value
+CONSTANT MaxCounter, 10         ; maximum counter value
+
+
+;-------------------------------------------------------------------------------
+; Registers
+;-------------------------------------------------------------------------------
+NAMEREG sE, sp                  ; stack pointer
+NAMEREG s8, counter             ; counter for argument of f(n)
+
+
+;-------------------------------------------------------------------------------
+; Main program
+;-------------------------------------------------------------------------------
+LOAD sp, StackTop               ; initialize stack pointer
+ENABLE INTERRUPT                ; enable interrupt
+
+start:
+LOAD counter, 01                ; counter
+loop:
+LOAD s0, counter                ; n = counter
+CALL rec_f                      ; call function f(n)
+OUTPUT s0, ResultPort           ; display result on ResultPort
+ADD counter, 01                 ; counter += 1
+COMPARE counter, MaxCounter     ; check if counter >= MaxCounter
+JUMP C, loop                    ; loop
+JUMP start
+
+
+;-------------------------------------------------------------------------------
+; Recursive function f(n)
+; Input: s0 = n
+; Output: s0 = f(n)
+;-------------------------------------------------------------------------------
+rec_f:
+COMPARE s0, 00                  ; check if n == 0
+RETURN Z                        ; f(0) = 0
+
+STORE  s0, (sp)                 ; save n at SPM address sp (temporary)
+SUB    sp, 01                   ; push stack
+SUB    s0, 01                   ; n - 1
+CALL   rec_f                    ; after return, s0 = f(n-1)
+ADD    sp, 01                   ; pop stack
+FETCH  s1, (sp)                 ; s1 = original n
+ADD    s0, s1                   ; s0 = f(n-1) + n
+RETURN
+
+
+;-------------------------------------------------------------------------------
+; ISR
+;-------------------------------------------------------------------------------
+ADDRESS 7FF
+isr:
+HWBUILD sF
+OUTPUT sF, 01
+RETURNI ENABLE

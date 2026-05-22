@@ -1,0 +1,162 @@
+;===============================================================================
+; Solving N queens puzzle
+; Source - https://codereview.stackexchange.com/q/295989
+; Modified by Guangxi Liu
+;===============================================================================
+
+
+;-------------------------------------------------------------------------------
+; Constants
+;-------------------------------------------------------------------------------
+CONSTANT ChessboardSize, 08                 ; size of chessboard, range from 1 to 8
+CONSTANT CurrentAttemptAddress, 00          ; current attempt address
+CONSTANT OrdinalNumberAddress, 0A           ; ordinal number address
+CONSTANT StackBottom, 10                    ; stack bottom address
+CONSTANT OrdNumPort, 00                     ; output port for result of total number
+CONSTANT SolPort, 01                        ; output port for result of solution
+
+
+;-------------------------------------------------------------------------------
+; Registers
+;-------------------------------------------------------------------------------
+NAMEREG sF, stack_top
+NAMEREG sE, current_attempt_length
+NAMEREG sD, row_of_queen_trying_to_add
+
+
+;-------------------------------------------------------------------------------
+; Main program
+;-------------------------------------------------------------------------------
+LOAD s0, 00
+STORE s0, OrdinalNumberAddress
+LOAD stack_top, StackBottom
+LOAD s0, 00
+STORE s0, (stack_top)
+ADD stack_top, ChessboardSize
+ADD stack_top, 01
+
+main_loop:
+    COMPARE stack_top, StackBottom
+    JUMP Z, end_of_the_main_loop
+    SUB stack_top, ChessboardSize
+    SUB stack_top, 01
+
+    FETCH current_attempt_length, (stack_top)
+    LOAD s0, CurrentAttemptAddress
+    STORE current_attempt_length, (s0)
+    LOAD s1, stack_top
+    LOAD s2, 00
+
+    copying_the_current_attempt_from_the_stack_loop:
+        COMPARE s2, current_attempt_length
+        JUMP Z, end_of_copying_the_current_attempt_from_the_stack_loop
+        ADD s2, 01
+        ADD s0, 01
+        ADD s1, 01
+        FETCH s3, (s1)
+        STORE s3, (s0)
+        JUMP copying_the_current_attempt_from_the_stack_loop
+    end_of_copying_the_current_attempt_from_the_stack_loop:
+
+    COMPARE current_attempt_length, ChessboardSize
+    JUMP NZ, not_a_solution
+
+    is_a_solution:
+    FETCH s0, OrdinalNumberAddress
+    ADD s0, 01
+    STORE s0, OrdinalNumberAddress
+    OUTPUT s0, OrdNumPort               ; print ordinal number
+    CALL print_the_current_attempt
+    JUMP main_loop
+
+    not_a_solution:
+    LOAD row_of_queen_trying_to_add, ChessboardSize
+    SUB row_of_queen_trying_to_add, 01
+
+    adding_a_new_queen_loop:
+        LOAD s0, CurrentAttemptAddress
+        ADD s0, 01
+        LOAD s1, 00
+
+        ; s2 will be the diagonal of the current attempt.
+        LOAD s2, row_of_queen_trying_to_add
+        ADD s2, current_attempt_length
+
+        ; s3 will be the anti-diagonal of the current attempt.
+        LOAD s3, row_of_queen_trying_to_add
+        SUB s3, current_attempt_length
+
+        looping_through_current_attempt:
+            COMPARE s1, current_attempt_length
+            JUMP Z, end_of_looping_through_current_attempt
+
+            FETCH s4, (s0)
+            COMPARE s4, row_of_queen_trying_to_add
+            JUMP Z, dont_add_the_new_queen          ; queen is in the same row
+
+            LOAD s5, s4
+            ADD s5, s1
+            COMPARE s5, s2
+            JUMP Z, dont_add_the_new_queen          ; queen is on the same diagonal
+
+            LOAD s6, s4
+            SUB s6, s1
+            COMPARE s6, s3
+            JUMP Z, dont_add_the_new_queen          ; queen is on the same antidiagonal
+
+            ADD s0, 01
+            ADD s1, 01
+            JUMP looping_through_current_attempt
+        end_of_looping_through_current_attempt:
+
+        add_the_new_queen:
+        LOAD s0, stack_top
+        LOAD s1, current_attempt_length
+        ADD s1, 01
+        STORE s1, (s0)
+        ADD s0, 01
+        LOAD s1, 00
+        copying_the_current_attempt_onto_stack:
+            COMPARE s1, current_attempt_length
+            JUMP Z, end_of_copying_the_current_attempt_onto_stack
+            LOAD s2, CurrentAttemptAddress
+            ADD s2, 01
+            ADD s2, s1
+            FETCH s3, (s2)
+            STORE s3, (s0)
+            ADD s0, 01
+            ADD s1, 01
+            JUMP copying_the_current_attempt_onto_stack
+        end_of_copying_the_current_attempt_onto_stack:
+        STORE row_of_queen_trying_to_add, (s0)
+        ADD stack_top, ChessboardSize
+        ADD stack_top, 01
+
+        dont_add_the_new_queen:
+        SUB row_of_queen_trying_to_add, 01
+        JUMP nc, adding_a_new_queen_loop
+    end_of_adding_a_new_queen_loop:
+    JUMP main_loop
+end_of_the_main_loop:
+
+end: JUMP end                   ; program end
+
+
+;-------------------------------------------------------------------------------
+; Print the current solution
+;-------------------------------------------------------------------------------
+print_the_current_attempt:
+    LOAD s0, CurrentAttemptAddress
+    ADD s0, 01
+    LOAD s1, 00
+    printing_the_current_attempt_loop:
+        COMPARE s1, current_attempt_length
+        JUMP Z, end_of_printing_the_current_attempt_loop
+        FETCH s9, (s0)
+        ADD s9, 01
+        OUTPUT s9, SolPort
+        ADD s0, 01
+        ADD s1, 01
+        JUMP printing_the_current_attempt_loop
+    end_of_printing_the_current_attempt_loop:
+RETURN

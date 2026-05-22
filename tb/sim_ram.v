@@ -28,7 +28,7 @@ module sim_ram #(
 reg [DW-1:0] mem_r [DP-1:0];
 wire wen;
 wire ren;
-reg [AW-1:0] addr_r;
+reg [$clog2(DP)-1:0] addr_r;
 wire [DW-1:0] dout_pre;
 genvar i;
 
