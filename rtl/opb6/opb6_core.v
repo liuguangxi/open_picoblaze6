@@ -127,7 +127,7 @@ assign pc_move_is_valid = (~instruction[17]) ? 1'b0 :
                           (instruction[14] ^ carry_flag);
 
 assign move_type = (instruction[16]) ? (~(&instruction[13:12])) :
-                   ((instruction[15:12] == 4'b1001) | ((~instruction[15]) & (~(&instruction[14:13]))));
+                   ((instruction[15:12] == 4'b1001) | ((~instruction[15]) & (~(&instruction[13:12]))));
 
 assign returni_type = (instruction[16:12] == 5'b01001);
 

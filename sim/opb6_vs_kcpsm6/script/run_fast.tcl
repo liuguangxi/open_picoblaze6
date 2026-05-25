@@ -1,6 +1,7 @@
 # Runtime arguments
-set TESTFILE rec_fn_int_test.hex
-set RUNCYC 5000
+#set TESTFILE rec_fn_int_test.hex
+set TESTFILE all_instr_test.hex
+set RUNCYC 10000
 set SLEEPCYC 2
 set INTCYC 200
 

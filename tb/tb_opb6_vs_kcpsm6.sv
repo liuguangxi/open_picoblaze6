@@ -143,7 +143,7 @@ end
 // Drive input port
 always @(posedge clk) begin
     in_port <= #Dly port_id;
-    in_port_1 <= #Dly port_id_1;
+    in_port_1 <= port_id_1;
 end
 
 

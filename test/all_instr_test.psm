@@ -1,0 +1,283 @@
+;===============================================================================
+; All instructions test
+;===============================================================================
+
+
+;-------------------------------------------------------------------------------
+; Main program
+;-------------------------------------------------------------------------------
+start:
+
+; [Register loading & Register Bank Selection]
+REGBANK A
+LOAD s0, 01
+LOAD s1, s0
+LOAD s2, 02
+LOAD s3, 03
+LOAD s4, 04
+LOAD s5, 05
+LOAD s6, 06
+LOAD s7, 07
+LOAD s8, 08
+LOAD s9, 09
+LOAD sA, 0A
+LOAD sB, 0B
+LOAD sC, 0C
+LOAD sD, 0D
+LOAD sE, 0E
+LOAD sF, 0F
+STAR s0, sF
+STAR s1, 0E
+REGBANK B
+LOAD s0, FF
+STAR sF, s0
+STAR sE, FE
+LOAD s1, 01
+LOAD s2, 02
+LOAD s3, 03
+LOAD s4, 04
+LOAD s5, 05
+LOAD s6, 06
+LOAD s7, 07
+LOAD s8, 08
+LOAD s9, 09
+LOAD sA, 0A
+LOAD sB, 0B
+LOAD sC, 0C
+LOAD sD, 0D
+REGBANK A
+
+ENABLE INTERRUPT                ; [Interrupt Handling]
+
+
+; [Logical]
+LOAD sA, CA
+AND sA, 53
+LOAD sA, CA
+LOAD sB, 14
+AND sA, sB
+LOAD sA, CA
+OR sA, 53
+LOAD sA, CA
+LOAD sB, 14
+OR sA, sB
+LOAD sA, CA
+XOR sA, 53
+LOAD sA, CA
+LOAD sB, 14
+XOR sA, sB
+
+
+; [Arithmetic]
+LOAD sA, 8E
+ADD sA, 43
+LOAD sA, 8E
+ADD sA, sA
+LOAD sA, 8E
+ADD sA, 72
+LOAD sA, 7B
+LOAD sB, A2
+ADD sA, 85
+ADDCY sB, 5D
+LOAD sA, 7B
+LOAD sB, A2
+ADD sA, 85
+ADDCY sB, 5D
+LOAD sA, 8E
+SUB sA, 43
+LOAD sA, 8E
+ADD sA, sA
+LOAD sA, 8E
+SUB sA, B5
+LOAD sA, 7B
+LOAD sB, A2
+SUB sA, B9
+SUBCY sB, A1
+LOAD sA, 7B
+LOAD sB, A2
+SUB sA, sA
+SUBCY sB, sB
+
+
+; [Test and Compare]
+LOAD sA, CA
+TEST sA, 40
+LOAD sA, 51
+TEST sA, FF
+LOAD sA, CA
+LOAD sB, 52
+TEST sA, FF
+TESTCY sB, FF
+LOAD sA, CA
+LOAD sB, 52
+TEST sA, 04
+TESTCY sB, 20
+LOAD sA, 8E
+COMPARE sA, 8E
+LOAD sA, 8E
+COMPARE sA, 98
+LOAD sA, 7B
+LOAD sB, A2
+LOAD sC, 14
+COMPARE sA, 7B
+COMPARECY sB, A2
+COMPARECY sC, 14
+LOAD sA, 7B
+LOAD sB, A2
+COMPARE sA, 7B
+COMPARECY sB, B9
+
+
+; [Shift and Rotate]
+LOAD sA, B5
+LOAD sB, 14
+SL0 sA
+SLA sB
+LOAD sA, B5
+LOAD sB, 14
+SLX sA
+SL1 sB
+LOAD sA, 2A
+LOAD sB, ED
+SR0 sA
+SRA sB
+LOAD sA, 2A
+LOAD sB, ED
+SRX sA
+SR1 sB
+LOAD s6, 83
+RL s6
+RR s6
+
+
+; [Input and Output]
+LOAD s0, 07
+INPUT sA, (s0)
+INPUT sA, 09
+LOAD s3, 3A
+OUTPUT s3, (s0)
+OUTPUT s3, 05
+OUTPUTK 61, A
+
+STRING hw_intro$, "Hardware Build"
+OUTPUTK hw_intro$, 8
+
+TABLE write_seq#, [00000010, 00000011, 00000010, 00000000]'b
+OUTPUTK write_seq#, 8
+
+
+; [Scratch Pad Memory]
+LOAD s1, 30
+LOAD s0, 55
+STORE s0, (s1)
+STORE s0, 31
+FETCH s2, (s1)
+FETCH s2, 31
+
+
+; [Jump]
+LOAD s0, 12
+COMPARE s0, 12
+JUMP Z, equal
+equal:
+
+LOAD s0, 19
+delay100:
+SUB s0, 01
+JUMP NZ, delay100
+
+LOAD sB, 01
+TEST sB, FF
+JUMP C, odd_parity
+odd_parity:
+
+LOAD s3, 40
+shift:
+SR1 s3
+JUMP NC, shift
+
+LOAD sB, menu'upper
+LOAD sA, menu'lower
+LOAD s0, 03
+SUB s0, 01
+ADD sA, s0
+ADDCY sB, 00
+JUMP@ (sB, sA)
+menu: JUMP choice1
+JUMP choice2
+JUMP choice3
+JUMP choice4
+choice1:
+OUTPUTK 01, 0
+JUMP end_choice
+choice2:
+OUTPUTK 02, 0
+JUMP end_choice
+choice3:
+OUTPUTK 03, 0
+JUMP end_choice
+choice4:
+OUTPUTK 04, 0
+JUMP end_choice
+end_choice:
+
+
+; [Subroutines]
+LOAD s9, 00
+LOAD s8, 00
+LOAD s1, 1E
+CALL test_stack
+OUTPUT s9, 02
+OUTPUT s8, 01
+
+LOAD s1, "a"
+CALL upper_case
+
+LOAD s5, 03
+CALL print_decimal
+LOAD s5, 0A
+CALL print_decimal
+
+
+DISABLE INTERRUPT               ; [Interrupt Handling]
+JUMP start                      ; [Jump]
+
+
+;-------------------------------------------------------------------------------
+; [Subroutines]
+;-------------------------------------------------------------------------------
+test_stack:
+ADD s8, s1
+ADDCY s9, 00
+SUB s1, 01
+CALL NZ, test_stack
+RETURN
+
+
+upper_case:
+COMPARE s1, 61
+RETURN C
+COMPARE s1, 7B
+RETURN NC
+AND s1, DF
+RETURN
+
+
+print_decimal:
+COMPARE s5, 0A
+JUMP C, convert
+LOAD&RETURN sF, 39
+convert:
+ADD s5, "0"
+OUTPUT s5, 00
+RETURN
+
+
+;-------------------------------------------------------------------------------
+; ISR
+;-------------------------------------------------------------------------------
+ADDRESS 7FF
+isr:
+REGBANK B                       ; [Register Bank Selection]
+HWBUILD sF                      ; [Version Control]
+RETURNI ENABLE                  ; [Interrupt Handling]
