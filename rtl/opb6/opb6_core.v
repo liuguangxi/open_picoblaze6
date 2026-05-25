@@ -82,7 +82,7 @@ wire upper_zero_sel;
 wire zero_flag_value;
 wire spm_enable_value;
 reg spm_enable;
-wire [7:0]spm_data;
+wire [7:0] spm_data;
 wire regbank_type;
 wire bank_value;
 wire loadstar_type;
