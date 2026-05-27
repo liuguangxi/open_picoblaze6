@@ -4,6 +4,9 @@
 
 Open PicoBlaze6 is a synthesizable and behavioral Verilog implementation compatible with Xilinx PicoBlaze KCPSM6. The project provides a Verilog module named `opb6`, reference KCPSM6 design, FPGA synthesis projects, test programs, and simulation environments for comparison and validation.
 
+Its architecture is shown in the figure below.
+<center><img src="doc/opb6_arch.svg" alt="architecture of opb6"></center>
+
 
 ## Directory
 
