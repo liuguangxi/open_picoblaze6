@@ -11,8 +11,8 @@
 
 
 module opb6_sp_ram #(
-    parameter DP = 32,             // RAM data depth
-    parameter DW = 8               // RAM data width
+    parameter DP = 32,              // RAM data depth
+    parameter DW = 8                // RAM data width
 )
 (
     input clk,                      // read/write clock
